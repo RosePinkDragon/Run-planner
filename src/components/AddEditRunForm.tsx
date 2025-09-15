@@ -101,7 +101,10 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
         </Box>
         <Box>
           <label>Distance (km)</label>
-          <Input type="number" step="0.01" value={distance} onChange={(e) => setDistance(parseFloat(e.target.value))} />
+          <Input type="number" step="0.01" value={distance} onChange={(e) => {
+            const val = parseFloat(e.target.value);
+            setDistance(isNaN(val) ? 0 : val);
+          }} />
         </Box>
         <Box>
           <label>Duration (hh:mm:ss)</label>
