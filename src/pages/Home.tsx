@@ -87,10 +87,10 @@ export default function Home() {
           setPendingImport(data);
           importDialog.onOpen();
         } else {
-          alert("Invalid file");
+          alert("File structure is incorrect or missing required fields.");
         }
       } catch {
-        alert("Invalid file");
+        alert("File is not valid JSON.");
       }
     });
   };
