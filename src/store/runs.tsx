@@ -69,7 +69,11 @@ export function RunsProvider({ children }: { children: React.ReactNode }) {
 
   const importRuns = (data: RunDBV1, mode: "merge" | "replace") => {
     if (mode === "replace") setRuns(data.runs);
-    else setRuns((r) => [...r, ...data.runs]);
+    else setRuns((r) => {
+      const existingIds = new Set(r.map(run => run.id));
+      const filteredRuns = data.runs.filter(run => !existingIds.has(run.id));
+      return [...r, ...filteredRuns];
+    });
   };
 
   const reset = () => {
