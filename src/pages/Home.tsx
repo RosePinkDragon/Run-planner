@@ -16,6 +16,7 @@ import {
   DialogFooter,
   DialogActionTrigger,
   DialogCloseTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { useRuns, type RunEntry, type RunDBV1 } from "@/store/runs";
 import AddEditRunForm from "@/components/AddEditRunForm";
@@ -167,6 +168,7 @@ export default function Home() {
       />
       <DialogRoot
         open={importDialog.open}
+        lazyMount
         onOpenChange={(e) =>
           e.open ? importDialog.onOpen() : importDialog.onClose()
         }
@@ -176,6 +178,9 @@ export default function Home() {
             <DialogTitle>Import Runs</DialogTitle>
           </DialogHeader>
           <DialogBody>
+            <DialogDescription mb="2">
+              Choose how to handle the imported runs.
+            </DialogDescription>
             <Box>How should the imported runs be handled?</Box>
           </DialogBody>
           <DialogFooter>
@@ -199,7 +204,9 @@ export default function Home() {
       </DialogRoot>
 
       <DialogRoot
+        role="alertdialog"
         open={resetDialog.open}
+        lazyMount
         onOpenChange={(e) =>
           e.open ? resetDialog.onOpen() : resetDialog.onClose()
         }
@@ -209,6 +216,9 @@ export default function Home() {
             <DialogTitle>Reset Data</DialogTitle>
           </DialogHeader>
           <DialogBody>
+            <DialogDescription mb="2">
+              This action will permanently remove all runs from this device.
+            </DialogDescription>
             <Box>This will remove all runs.</Box>
           </DialogBody>
           <DialogFooter>
