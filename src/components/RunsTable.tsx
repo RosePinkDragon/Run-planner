@@ -1,4 +1,4 @@
-import { Box, Button, HStack } from "@chakra-ui/react";
+import { Button, HStack, Table } from "@chakra-ui/react";
 import type { RunEntry } from "@/store/runs";
 import { useRuns } from "@/store/runs";
 import { formatDuration, formatPace } from "@/lib/time";
@@ -11,9 +11,10 @@ interface Props {
 
 export default function RunsTable({ runs, onEdit }: Props) {
   const { deleteRun, duplicateRun } = useRuns();
-  const [sort, setSort] = useState<
-    { key: "date" | "distance" | "duration"; dir: 1 | -1 }
-  >();
+  const [sort, setSort] = useState<{
+    key: "date" | "distance" | "duration";
+    dir: 1 | -1;
+  }>();
 
   const sorted = [...runs].sort((a, b) => {
     if (!sort) return 0;
@@ -37,39 +38,72 @@ export default function RunsTable({ runs, onEdit }: Props) {
     });
   };
 
-  const header = (label: string, key: "date" | "distance" | "duration") => (
-    <th style={{ cursor: "pointer" }} onClick={() => toggleSort(key)}>
-      {label} {sort?.key === key ? (sort.dir === 1 ? "▲" : "▼") : ""}
-    </th>
-  );
+  const header = (
+    label: string,
+    key: "date" | "distance" | "duration",
+    opts?: { align?: "start" | "end" }
+  ) => {
+    const isActive = sort?.key === key;
+    const arrow = isActive ? (sort!.dir === 1 ? "▲" : "▼") : "";
+    const ariaSort: "none" | "ascending" | "descending" = isActive
+      ? sort!.dir === 1
+        ? "ascending"
+        : "descending"
+      : "none";
+
+    return (
+      <Table.ColumnHeader
+        onClick={() => toggleSort(key)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleSort(key);
+          }
+        }}
+        tabIndex={0}
+        aria-sort={ariaSort}
+        cursor="pointer"
+        userSelect="none"
+        textAlign={opts?.align === "end" ? "end" : undefined}
+      >
+        {label} {arrow}
+      </Table.ColumnHeader>
+    );
+  };
 
   return (
-    <Box overflowX="auto">
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
+    <Table.ScrollArea borderWidth="1px" rounded="md" width="full">
+      <Table.Root size="sm" variant="outline" striped stickyHeader interactive>
+        <Table.Header>
+          <Table.Row>
             {header("Date", "date")}
-            {header("Distance (km)", "distance")}
-            {header("Duration", "duration")}
-            <th>Pace</th>
-            <th>Type</th>
-            <th>Effort</th>
-            <th>Tags</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+            {header("Distance (km)", "distance", { align: "end" })}
+            {header("Duration", "duration", { align: "end" })}
+            <Table.ColumnHeader textAlign="end">Pace</Table.ColumnHeader>
+            <Table.ColumnHeader>Type</Table.ColumnHeader>
+            <Table.ColumnHeader>Effort</Table.ColumnHeader>
+            <Table.ColumnHeader>Tags</Table.ColumnHeader>
+            <Table.ColumnHeader textAlign="end">Actions</Table.ColumnHeader>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
           {sorted.map((run) => (
-            <tr key={run.id}>
-              <td>{run.date}</td>
-              <td>{run.distanceKm.toFixed(2)}</td>
-              <td>{formatDuration(run.durationSec)}</td>
-              <td>{formatPace(run.paceSecPerKm)}</td>
-              <td>{run.type}</td>
-              <td>{run.rpe ?? ""}</td>
-              <td>{run.tags?.join(", ")}</td>
-              <td>
-                <HStack gap={1}>
+            <Table.Row key={run.id}>
+              <Table.Cell>{run.date}</Table.Cell>
+              <Table.Cell textAlign="end">
+                {run.distanceKm.toFixed(2)}
+              </Table.Cell>
+              <Table.Cell textAlign="end">
+                {formatDuration(run.durationSec)}
+              </Table.Cell>
+              <Table.Cell textAlign="end">
+                {formatPace(run.paceSecPerKm)}
+              </Table.Cell>
+              <Table.Cell>{run.type}</Table.Cell>
+              <Table.Cell>{run.rpe ?? ""}</Table.Cell>
+              <Table.Cell>{run.tags?.join(", ")}</Table.Cell>
+              <Table.Cell textAlign="end">
+                <HStack gap={1} justify="flex-end">
                   <Button size="xs" onClick={() => onEdit(run)}>
                     Edit
                   </Button>
@@ -80,11 +114,11 @@ export default function RunsTable({ runs, onEdit }: Props) {
                     Duplicate
                   </Button>
                 </HStack>
-              </td>
-            </tr>
+              </Table.Cell>
+            </Table.Row>
           ))}
-        </tbody>
-      </table>
-    </Box>
+        </Table.Body>
+      </Table.Root>
+    </Table.ScrollArea>
   );
 }

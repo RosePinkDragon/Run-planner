@@ -7,6 +7,16 @@ import {
   useDisclosure,
   Input,
 } from "@chakra-ui/react";
+import {
+  DialogRoot,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+  DialogFooter,
+  DialogActionTrigger,
+  DialogCloseTrigger,
+} from "@/components/ui/dialog";
 import { useRuns, type RunEntry, type RunDBV1 } from "@/store/runs";
 import AddEditRunForm from "@/components/AddEditRunForm";
 import FiltersBar, { type Filters } from "@/components/FiltersBar";
@@ -127,11 +137,9 @@ export default function Home() {
       <HStack justify="space-between" gap={4}>
         <HStack gap={2}>
           <Box fontWeight="bold">Run Logger</Box>
-          <Button colorScheme="blue" onClick={openNew}>
-            Add Run
-          </Button>
         </HStack>
         <HStack gap={2}>
+          <Button onClick={openNew}>Add Run</Button>
           <Button onClick={exportCSV}>Export CSV</Button>
           <Button onClick={exportJSON}>Export JSON</Button>
           <Button onClick={triggerImport}>Import JSON</Button>
@@ -157,63 +165,63 @@ export default function Home() {
         onClose={onClose}
         initialRun={editing || undefined}
       />
-      {importDialog.open && (
-        <Box
-          position="fixed"
-          inset={0}
-          bg="blackAlpha.600"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Box bg="white" p={4} rounded="md" minW="300px">
-            <VStack align="stretch" gap={4}>
-              <Box fontWeight="bold">Import Runs</Box>
-              <Box>How should the imported runs be handled?</Box>
-              <HStack justify="flex-end" gap={3}>
-                <Button
-                  onClick={() => {
-                    setPendingImport(null);
-                    importDialog.onClose();
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={() => confirmImport("merge")}>Merge</Button>
-                <Button
-                  colorScheme="red"
-                  onClick={() => confirmImport("replace")}
-                >
-                  Replace
-                </Button>
-              </HStack>
-            </VStack>
-          </Box>
-        </Box>
-      )}
-      {resetDialog.open && (
-        <Box
-          position="fixed"
-          inset={0}
-          bg="blackAlpha.600"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Box bg="white" p={4} rounded="md" minW="300px">
-            <VStack align="stretch" gap={4}>
-              <Box fontWeight="bold">Reset Data</Box>
-              <Box>This will remove all runs.</Box>
-              <HStack justify="flex-end" gap={3}>
-                <Button onClick={resetDialog.onClose}>Cancel</Button>
-                <Button colorScheme="red" onClick={confirmReset}>
-                  Reset
-                </Button>
-              </HStack>
-            </VStack>
-          </Box>
-        </Box>
-      )}
+      <DialogRoot
+        open={importDialog.open}
+        onOpenChange={(e) =>
+          e.open ? importDialog.onOpen() : importDialog.onClose()
+        }
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Import Runs</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <Box>How should the imported runs be handled?</Box>
+          </DialogBody>
+          <DialogFooter>
+            <DialogActionTrigger asChild>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPendingImport(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </DialogActionTrigger>
+            <Button onClick={() => confirmImport("merge")}>Merge</Button>
+            <Button colorScheme="red" onClick={() => confirmImport("replace")}>
+              Replace
+            </Button>
+          </DialogFooter>
+          <DialogCloseTrigger />
+        </DialogContent>
+      </DialogRoot>
+
+      <DialogRoot
+        open={resetDialog.open}
+        onOpenChange={(e) =>
+          e.open ? resetDialog.onOpen() : resetDialog.onClose()
+        }
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Data</DialogTitle>
+          </DialogHeader>
+          <DialogBody>
+            <Box>This will remove all runs.</Box>
+          </DialogBody>
+          <DialogFooter>
+            <DialogActionTrigger asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogActionTrigger>
+            <Button colorScheme="red" onClick={confirmReset}>
+              Reset
+            </Button>
+          </DialogFooter>
+          <DialogCloseTrigger />
+        </DialogContent>
+      </DialogRoot>
     </VStack>
   );
 }

@@ -10,6 +10,9 @@ import {
   Stack,
   Textarea,
   type SliderValueChangeDetails,
+  createListCollection,
+  Select,
+  Portal,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useRuns, type RunEntry, type RunType } from "@/store/runs";
@@ -34,6 +37,10 @@ interface Props {
 export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
   const { addRun, updateRun, deleteRun, duplicateRun } = useRuns();
   const isEdit = !!initialRun;
+
+  const typeCollection = createListCollection({
+    items: typeOptions.map((t) => ({ label: t, value: t })),
+  });
 
   const [date, setDate] = useState("");
   const [distance, setDistance] = useState(0);
@@ -111,6 +118,7 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
       w={{ base: "100%", md: "400px" }}
       h="100%"
       bg="white"
+      color="black"
       p={4}
       overflowY="auto"
       shadow="md"
@@ -151,16 +159,33 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
         </Box>
         <Box>
           <label>Type</label>
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value as RunType)}
+          <Select.Root
+            collection={typeCollection}
+            value={[type]}
+            onValueChange={(e) => setType((e.value[0] as RunType) ?? "Easy")}
           >
-            {typeOptions.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
+            <Select.HiddenSelect />
+            <Select.Control>
+              <Select.Trigger>
+                <Select.ValueText placeholder="Select type" />
+              </Select.Trigger>
+              <Select.IndicatorGroup>
+                <Select.Indicator />
+              </Select.IndicatorGroup>
+            </Select.Control>
+            <Portal>
+              <Select.Positioner>
+                <Select.Content>
+                  {typeCollection.items.map((item) => (
+                    <Select.Item key={item.value} item={item}>
+                      {item.label}
+                      <Select.ItemIndicator />
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Positioner>
+            </Portal>
+          </Select.Root>
         </Box>
         <Box>
           <label htmlFor="rpe">Effort (RPE 1-10)</label>
