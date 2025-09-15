@@ -1,4 +1,16 @@
-import { Box, Button, HStack, Input, Stack, Textarea } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  HStack,
+  Input,
+  SliderRange,
+  SliderRoot,
+  SliderThumb,
+  SliderTrack,
+  Stack,
+  Textarea,
+  type SliderValueChangeDetails,
+} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useRuns, type RunEntry, type RunType } from "@/store/runs";
 import { parseDuration, formatDuration, formatPace } from "@/lib/time";
@@ -63,7 +75,10 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
       durationSec,
       type,
       rpe,
-      tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+      tags: tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
       notes,
     };
     if (isEdit && initialRun) {
@@ -89,7 +104,18 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
   };
 
   return (
-    <Box position="fixed" top={0} right={0} w={{ base: "100%", md: "400px" }} h="100%" bg="white" p={4} overflowY="auto" shadow="md" zIndex={10}>
+    <Box
+      position="fixed"
+      top={0}
+      right={0}
+      w={{ base: "100%", md: "400px" }}
+      h="100%"
+      bg="white"
+      p={4}
+      overflowY="auto"
+      shadow="md"
+      zIndex={10}
+    >
       <Stack gap={4}>
         <HStack justify="space-between">
           <strong>{isEdit ? "Edit Run" : "Add Run"}</strong>
@@ -97,18 +123,27 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
         </HStack>
         <Box>
           <label>Date</label>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
         </Box>
         <Box>
           <label>Distance (km)</label>
-          <Input type="number" step="0.01" value={distance} onChange={(e) => {
-            const val = parseFloat(e.target.value);
-            setDistance(isNaN(val) ? 0 : val);
-          }} />
+          <Input
+            type="number"
+            step="0.01"
+            value={distance}
+            onChange={(e) => setDistance(parseFloat(e.target.value))}
+          />
         </Box>
         <Box>
           <label>Duration (hh:mm:ss)</label>
-          <Input value={duration} onChange={(e) => setDuration(e.target.value)} />
+          <Input
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+          />
         </Box>
         <Box>
           <label>Pace (mm:ss/km)</label>
@@ -116,7 +151,10 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
         </Box>
         <Box>
           <label>Type</label>
-          <select value={type} onChange={(e) => setType(e.target.value as RunType)}>
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value as RunType)}
+          >
             {typeOptions.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -125,8 +163,19 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
           </select>
         </Box>
         <Box>
-          <label>Effort (RPE 1-10)</label>
-          <input type="range" min={1} max={10} value={rpe ?? 5} onChange={(e) => setRpe(parseInt(e.target.value))} />
+          <label htmlFor="rpe">Effort (RPE 1-10)</label>
+          <SliderRoot
+            id="rpe"
+            min={1}
+            max={10}
+            value={[rpe ?? 5]}
+            onValueChange={(d: SliderValueChangeDetails) => setRpe(d.value[0])}
+          >
+            <SliderTrack>
+              <SliderRange />
+            </SliderTrack>
+            <SliderThumb index={0} />
+          </SliderRoot>
         </Box>
         <Box>
           <label>Tags</label>
@@ -142,7 +191,9 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
               Delete
             </Button>
           )}
-          {isEdit && initialRun && <Button onClick={handleDuplicate}>Duplicate</Button>}
+          {isEdit && initialRun && (
+            <Button onClick={handleDuplicate}>Duplicate</Button>
+          )}
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
