@@ -16,6 +16,7 @@ export interface Filters {
   from?: string;
   to?: string;
   text?: string;
+  status?: "planned" | "done";
 }
 
 interface Props {
@@ -42,6 +43,14 @@ export default function FiltersBar({ value, onChange, onClear }: Props) {
     items: [
       { label: "All", value: "" },
       ...typeOptions.map((t) => ({ label: t, value: t })),
+    ],
+  });
+
+  const statusCollection = createListCollection({
+    items: [
+      { label: "All", value: "" },
+      { label: "Completed", value: "done" },
+      { label: "Planned", value: "planned" },
     ],
   });
 
@@ -80,6 +89,44 @@ export default function FiltersBar({ value, onChange, onClear }: Props) {
             <Select.Positioner>
               <Select.Content>
                 {typeCollection.items.map((item) => (
+                  <Select.Item key={item.value} item={item}>
+                    {item.label}
+                    <Select.ItemIndicator />
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Positioner>
+          </Portal>
+        </Select.Root>
+      </Box>
+      <Box>
+        <Select.Root
+          width={150}
+          collection={statusCollection}
+          value={[state.status || ""]}
+          onValueChange={(e) =>
+            update({
+              status: ((e.value[0] as string) || undefined) as
+                | "planned"
+                | "done"
+                | undefined,
+            })
+          }
+        >
+          <Select.HiddenSelect />
+          <Select.Label>Status</Select.Label>
+          <Select.Control>
+            <Select.Trigger>
+              <Select.ValueText placeholder="All" />
+            </Select.Trigger>
+            <Select.IndicatorGroup>
+              <Select.Indicator />
+            </Select.IndicatorGroup>
+          </Select.Control>
+          <Portal>
+            <Select.Positioner>
+              <Select.Content>
+                {statusCollection.items.map((item) => (
                   <Select.Item key={item.value} item={item}>
                     {item.label}
                     <Select.ItemIndicator />

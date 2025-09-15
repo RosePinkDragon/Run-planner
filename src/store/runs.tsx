@@ -22,6 +22,7 @@ export interface RunEntry {
   rpe?: number; // 1..10
   tags?: string[];
   notes?: string;
+  status?: "planned" | "done";
 }
 
 export interface RunDBV1 {
@@ -50,7 +51,15 @@ export function RunsProvider({ children }: { children: React.ReactNode }) {
 
   const addRun: RunsContextValue["addRun"] = (run) => {
     const paceSecPerKm = calcPace(run.durationSec, run.distanceKm);
-    setRuns((r) => [...r, { ...run, id: crypto.randomUUID(), paceSecPerKm }]);
+    setRuns((r) => [
+      ...r,
+      {
+        ...run,
+        status: run.status ?? "done",
+        id: crypto.randomUUID(),
+        paceSecPerKm,
+      },
+    ]);
   };
 
   const updateRun: RunsContextValue["updateRun"] = (run) => {

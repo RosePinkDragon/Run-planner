@@ -41,8 +41,16 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   initialRun?: RunEntry;
+  initialDate?: string;
+  defaultStatus?: "planned" | "done";
 }
-export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
+export default function AddEditRunForm({
+  isOpen,
+  onClose,
+  initialRun,
+  initialDate,
+  defaultStatus,
+}: Props) {
   const { addRun, updateRun, deleteRun, duplicateRun } = useRuns();
   const isEdit = !!initialRun;
 
@@ -68,7 +76,7 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
       setTags(initialRun.tags?.join(",") || "");
       setNotes(initialRun.notes || "");
     } else {
-      setDate(new Date().toISOString().slice(0, 10));
+      setDate(initialDate ?? new Date().toISOString().slice(0, 10));
       setDistance(0);
       setDuration("00:00:00");
       setType("Easy");
@@ -76,7 +84,7 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
       setTags("");
       setNotes("");
     }
-  }, [initialRun, isOpen]);
+  }, [initialRun, isOpen, initialDate]);
 
   // Keep the drawer mounted to allow exit animations; control visibility via `open` prop.
 
@@ -95,6 +103,7 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
         .map((t) => t.trim())
         .filter(Boolean),
       notes,
+      status: initialRun?.status ?? defaultStatus,
     };
     if (isEdit && initialRun) {
       updateRun({ ...runBase, id: initialRun.id });

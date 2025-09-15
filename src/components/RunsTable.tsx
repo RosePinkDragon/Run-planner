@@ -1,4 +1,4 @@
-import { Button, HStack, Table } from "@chakra-ui/react";
+import { Button, HStack, Table, Badge } from "@chakra-ui/react";
 import type { RunEntry } from "@/store/runs";
 import { useRuns } from "@/store/runs";
 import { formatDuration, formatPace } from "@/lib/time";
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function RunsTable({ runs, onEdit }: Props) {
-  const { deleteRun, duplicateRun } = useRuns();
+  const { deleteRun, duplicateRun, updateRun } = useRuns();
   const [sort, setSort] = useState<{
     key: "date" | "distance" | "duration";
     dir: 1 | -1;
@@ -83,6 +83,7 @@ export default function RunsTable({ runs, onEdit }: Props) {
             <Table.ColumnHeader>Type</Table.ColumnHeader>
             <Table.ColumnHeader>Effort</Table.ColumnHeader>
             <Table.ColumnHeader>Tags</Table.ColumnHeader>
+            <Table.ColumnHeader>Status</Table.ColumnHeader>
             <Table.ColumnHeader textAlign="end">Actions</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
@@ -102,10 +103,30 @@ export default function RunsTable({ runs, onEdit }: Props) {
               <Table.Cell>{run.type}</Table.Cell>
               <Table.Cell>{run.rpe ?? ""}</Table.Cell>
               <Table.Cell>{run.tags?.join(", ")}</Table.Cell>
+              <Table.Cell>
+                {run.status === "planned" ? (
+                  <Badge colorPalette="purple">Planned</Badge>
+                ) : (
+                  <Badge colorPalette="green">Done</Badge>
+                )}
+              </Table.Cell>
               <Table.Cell textAlign="end">
                 <HStack gap={1} justify="flex-end">
                   <Button size="xs" onClick={() => onEdit(run)}>
                     Edit
+                  </Button>
+                  <Button
+                    size="xs"
+                    onClick={() =>
+                      updateRun({
+                        ...run,
+                        status: run.status === "planned" ? "done" : "planned",
+                      })
+                    }
+                  >
+                    {run.status === "planned"
+                      ? "Mark Completed"
+                      : "Mark Planned"}
                   </Button>
                   <Button size="xs" onClick={() => deleteRun(run.id)}>
                     Delete

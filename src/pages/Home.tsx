@@ -23,6 +23,8 @@ import AddEditRunForm from "@/components/AddEditRunForm";
 import FiltersBar, { type Filters } from "@/components/FiltersBar";
 import RunsTable from "@/components/RunsTable";
 import StatsCards from "@/components/StatsCards";
+import CalendarView from "@/components/CalendarView";
+import { parseXlsx } from "@/lib/excel";
 
 export default function Home() {
   const { runs, importRuns, reset } = useRuns();
@@ -32,10 +34,13 @@ export default function Home() {
   const [editing, setEditing] = useState<RunEntry | null>(null);
   const [filters, setFilters] = useState<Filters>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  const excelRef = useRef<HTMLInputElement>(null);
   const [pendingImport, setPendingImport] = useState<RunDBV1 | null>(null);
+  const [view, setView] = useState<"list" | "calendar">("list");
 
   const filtered = runs.filter((r) => {
     if (filters.type && r.type !== filters.type) return false;
+    if (filters.status && (r.status ?? "done") !== filters.status) return false;
     if (filters.from && r.date < filters.from) return false;
     if (filters.to && r.date > filters.to) return false;
     if (filters.text) {
@@ -71,7 +76,7 @@ export default function Home() {
 
   const exportCSV = () => {
     const header =
-      "date,distance_km,duration_sec,pace_sec_per_km,type,rpe,tags,notes";
+      "date,distance_km,duration_sec,pace_sec_per_km,type,rpe,tags,notes,status";
     const escape = (val: string) => `"${val.replace(/"/g, '""')}"`;
     const rows = runs.map((r) =>
       [
@@ -83,6 +88,7 @@ export default function Home() {
         r.rpe?.toString() ?? "",
         r.tags?.join(";") ?? "",
         r.notes ?? "",
+        r.status ?? "done",
       ]
         .map((v) => escape(v))
         .join(",")
@@ -123,6 +129,19 @@ export default function Home() {
   };
 
   const triggerImport = () => fileRef.current?.click();
+  const triggerExcelImport = () => excelRef.current?.click();
+
+  const importExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    parseXlsx(file)
+      .then((items: RunEntry[]) => {
+        importRuns({ version: 1, runs: items }, "merge");
+      })
+      .finally(() => {
+        if (e.target) e.target.value = "";
+      });
+  };
 
   const handleReset = () => {
     resetDialog.onOpen();
@@ -138,12 +157,25 @@ export default function Home() {
       <HStack justify="space-between" gap={4}>
         <HStack gap={2}>
           <Box fontWeight="bold">Run Logger</Box>
+          <Button
+            variant={view === "list" ? "solid" : "outline"}
+            onClick={() => setView("list")}
+          >
+            List
+          </Button>
+          <Button
+            variant={view === "calendar" ? "solid" : "outline"}
+            onClick={() => setView("calendar")}
+          >
+            Calendar
+          </Button>
         </HStack>
         <HStack gap={2}>
           <Button onClick={openNew}>Add Run</Button>
           <Button onClick={exportCSV}>Export CSV</Button>
           <Button onClick={exportJSON}>Export JSON</Button>
           <Button onClick={triggerImport}>Import JSON</Button>
+          <Button onClick={triggerExcelImport}>Import Excel</Button>
           <Button onClick={handleReset}>Reset Data</Button>
         </HStack>
         <Input
@@ -153,14 +185,27 @@ export default function Home() {
           display="none"
           onChange={handleImport}
         />
+        <Input
+          type="file"
+          accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+          ref={excelRef}
+          display="none"
+          onChange={importExcel}
+        />
       </HStack>
-      <StatsCards runs={runs} />
-      <FiltersBar
-        value={filters}
-        onChange={setFilters}
-        onClear={() => setFilters({})}
-      />
-      <RunsTable runs={filtered} onEdit={openEdit} />
+      {view === "list" ? (
+        <>
+          <StatsCards runs={runs} />
+          <FiltersBar
+            value={filters}
+            onChange={setFilters}
+            onClear={() => setFilters({})}
+          />
+          <RunsTable runs={filtered} onEdit={openEdit} />
+        </>
+      ) : (
+        <CalendarView />
+      )}
       <AddEditRunForm
         isOpen={isOpen}
         onClose={onClose}
