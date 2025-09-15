@@ -67,7 +67,7 @@ export default function AddEditRunForm({ isOpen, onClose, initialRun }: Props) {
       notes,
     };
     if (isEdit && initialRun) {
-      updateRun({ ...runBase, id: initialRun.id, paceSecPerKm: 0 });
+      updateRun({ ...runBase, id: initialRun.id });
     } else {
       addRun(runBase);
     }

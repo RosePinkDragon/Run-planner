@@ -13,14 +13,16 @@ export function loadDB(): RunDBV1 {
   return { version: 1, runs: [] };
 }
 
-let timeout: number | undefined;
-export function saveDB(db: RunDBV1) {
-  if (typeof localStorage === "undefined") return;
-  if (timeout) clearTimeout(timeout);
-  timeout = window.setTimeout(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-  }, 300);
-}
+export const saveDB = (() => {
+  let timeout: number | undefined;
+  return (db: RunDBV1) => {
+    if (typeof localStorage === "undefined") return;
+    if (timeout) clearTimeout(timeout);
+    timeout = window.setTimeout(() => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    }, 300);
+  };
+})();
 
 export function resetDB() {
   if (typeof localStorage === "undefined") return;

@@ -11,9 +11,9 @@ interface Props {
 
 export default function RunsTable({ runs, onEdit }: Props) {
   const { deleteRun, duplicateRun } = useRuns();
-  const [sort, setSort] = useState<{ key: "date" | "distance" | "duration"; dir: 1 } | null>(
-    null,
-  );
+  const [sort, setSort] = useState<
+    { key: "date" | "distance" | "duration"; dir: 1 | -1 }
+  >();
 
   const sorted = [...runs].sort((a, b) => {
     if (!sort) return 0;
@@ -33,7 +33,7 @@ export default function RunsTable({ runs, onEdit }: Props) {
   const toggleSort = (key: "date" | "distance" | "duration") => {
     setSort((s) => {
       if (!s || s.key !== key) return { key, dir: 1 };
-      return { key, dir: (s.dir === 1 ? -1 : 1) as 1 };
+      return { key, dir: s.dir === 1 ? -1 : 1 };
     });
   };
 

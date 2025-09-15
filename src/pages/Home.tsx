@@ -1,13 +1,6 @@
 import { useState, useRef } from "react";
-import {
-  Box,
-  Button,
-  HStack,
-  VStack,
-  useDisclosure,
-  Input,
-} from "@chakra-ui/react";
-import { useRuns, type RunEntry } from "@/store/runs";
+import { Box, Button, HStack, VStack, useDisclosure, Input } from "@chakra-ui/react";
+import { useRuns, type RunEntry, type RunDBV1 } from "@/store/runs";
 import AddEditRunForm from "@/components/AddEditRunForm";
 import FiltersBar, { type Filters } from "@/components/FiltersBar";
 import RunsTable from "@/components/RunsTable";
@@ -16,9 +9,12 @@ import StatsCards from "@/components/StatsCards";
 export default function Home() {
   const { runs, importRuns, reset } = useRuns();
   const { open: isOpen, onOpen, onClose } = useDisclosure();
+  const importDialog = useDisclosure();
+  const resetDialog = useDisclosure();
   const [editing, setEditing] = useState<RunEntry | null>(null);
   const [filters, setFilters] = useState<Filters>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  const [pendingImport, setPendingImport] = useState<RunDBV1 | null>(null);
 
   const filtered = runs.filter((r) => {
     if (filters.type && r.type !== filters.type) return false;
@@ -57,17 +53,20 @@ export default function Home() {
 
   const exportCSV = () => {
     const header = "date,distance_km,duration_sec,pace_sec_per_km,type,rpe,tags,notes";
+    const escape = (val: string) => `"${val.replace(/"/g, '""')}"`;
     const rows = runs.map((r) =>
       [
         r.date,
-        r.distanceKm,
-        r.durationSec,
-        r.paceSecPerKm,
+        r.distanceKm.toString(),
+        r.durationSec.toString(),
+        r.paceSecPerKm.toString(),
         r.type,
-        r.rpe ?? "",
-        r.tags?.join("|") ?? "",
+        r.rpe?.toString() ?? "",
+        r.tags?.join(";") ?? "",
         r.notes ?? "",
-      ].join(","),
+      ]
+        .map((v) => escape(v))
+        .join(","),
     );
     const blob = new Blob([header + "\n" + rows.join("\n")], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -85,10 +84,8 @@ export default function Home() {
       try {
         const data = JSON.parse(text);
         if (data.version === 1 && Array.isArray(data.runs)) {
-          const mode = window.confirm("Replace existing data? Click OK to replace, Cancel to merge")
-            ? "replace"
-            : "merge";
-          importRuns(data, mode);
+          setPendingImport(data);
+          importDialog.onOpen();
         } else {
           alert("Invalid file");
         }
@@ -98,10 +95,21 @@ export default function Home() {
     });
   };
 
+  const confirmImport = (mode: "merge" | "replace") => {
+    if (pendingImport) importRuns(pendingImport, mode);
+    setPendingImport(null);
+    importDialog.onClose();
+  };
+
   const triggerImport = () => fileRef.current?.click();
 
   const handleReset = () => {
-    if (window.confirm("Reset all data?")) reset();
+    resetDialog.onOpen();
+  };
+
+  const confirmReset = () => {
+    reset();
+    resetDialog.onClose();
   };
 
   return (
@@ -131,6 +139,46 @@ export default function Home() {
       <FiltersBar value={filters} onChange={setFilters} onClear={() => setFilters({})} />
       <RunsTable runs={filtered} onEdit={openEdit} />
       <AddEditRunForm isOpen={isOpen} onClose={onClose} initialRun={editing || undefined} />
+      {importDialog.open && (
+        <Box position="fixed" inset={0} bg="blackAlpha.600" display="flex" alignItems="center" justifyContent="center">
+          <Box bg="white" p={4} rounded="md" minW="300px">
+            <VStack align="stretch" gap={4}>
+              <Box fontWeight="bold">Import Runs</Box>
+              <Box>How should the imported runs be handled?</Box>
+              <HStack justify="flex-end" gap={3}>
+                <Button
+                  onClick={() => {
+                    setPendingImport(null);
+                    importDialog.onClose();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={() => confirmImport("merge")}>Merge</Button>
+                <Button colorScheme="red" onClick={() => confirmImport("replace")}>
+                  Replace
+                </Button>
+              </HStack>
+            </VStack>
+          </Box>
+        </Box>
+      )}
+      {resetDialog.open && (
+        <Box position="fixed" inset={0} bg="blackAlpha.600" display="flex" alignItems="center" justifyContent="center">
+          <Box bg="white" p={4} rounded="md" minW="300px">
+            <VStack align="stretch" gap={4}>
+              <Box fontWeight="bold">Reset Data</Box>
+              <Box>This will remove all runs.</Box>
+              <HStack justify="flex-end" gap={3}>
+                <Button onClick={resetDialog.onClose}>Cancel</Button>
+                <Button colorScheme="red" onClick={confirmReset}>
+                  Reset
+                </Button>
+              </HStack>
+            </VStack>
+          </Box>
+        </Box>
+      )}
     </VStack>
   );
 }

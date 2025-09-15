@@ -32,7 +32,7 @@ export interface RunDBV1 {
 interface RunsContextValue {
   runs: RunEntry[];
   addRun: (run: Omit<RunEntry, "id" | "paceSecPerKm">) => void;
-  updateRun: (run: RunEntry) => void;
+  updateRun: (run: Omit<RunEntry, "paceSecPerKm">) => void;
   deleteRun: (id: string) => void;
   duplicateRun: (id: string) => void;
   importRuns: (data: RunDBV1, mode: "merge" | "replace") => void;
