@@ -1,5 +1,12 @@
 import { useState, useRef } from "react";
-import { Box, Button, HStack, VStack, useDisclosure, Input } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  HStack,
+  VStack,
+  useDisclosure,
+  Input,
+} from "@chakra-ui/react";
 import { useRuns, type RunEntry, type RunDBV1 } from "@/store/runs";
 import AddEditRunForm from "@/components/AddEditRunForm";
 import FiltersBar, { type Filters } from "@/components/FiltersBar";
@@ -52,7 +59,8 @@ export default function Home() {
   };
 
   const exportCSV = () => {
-    const header = "date,distance_km,duration_sec,pace_sec_per_km,type,rpe,tags,notes";
+    const header =
+      "date,distance_km,duration_sec,pace_sec_per_km,type,rpe,tags,notes";
     const escape = (val: string) => `"${val.replace(/"/g, '""')}"`;
     const rows = runs.map((r) =>
       [
@@ -66,9 +74,11 @@ export default function Home() {
         r.notes ?? "",
       ]
         .map((v) => escape(v))
-        .join(","),
+        .join(",")
     );
-    const blob = new Blob([header + "\n" + rows.join("\n")], { type: "text/csv" });
+    const blob = new Blob([header + "\n" + rows.join("\n")], {
+      type: "text/csv",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -87,10 +97,10 @@ export default function Home() {
           setPendingImport(data);
           importDialog.onOpen();
         } else {
-          alert("Invalid file");
+          alert("File structure is incorrect or missing required fields.");
         }
       } catch {
-        alert("Invalid file");
+        alert("File is not valid JSON.");
       }
     });
   };
@@ -136,11 +146,26 @@ export default function Home() {
         />
       </HStack>
       <StatsCards runs={runs} />
-      <FiltersBar value={filters} onChange={setFilters} onClear={() => setFilters({})} />
+      <FiltersBar
+        value={filters}
+        onChange={setFilters}
+        onClear={() => setFilters({})}
+      />
       <RunsTable runs={filtered} onEdit={openEdit} />
-      <AddEditRunForm isOpen={isOpen} onClose={onClose} initialRun={editing || undefined} />
+      <AddEditRunForm
+        isOpen={isOpen}
+        onClose={onClose}
+        initialRun={editing || undefined}
+      />
       {importDialog.open && (
-        <Box position="fixed" inset={0} bg="blackAlpha.600" display="flex" alignItems="center" justifyContent="center">
+        <Box
+          position="fixed"
+          inset={0}
+          bg="blackAlpha.600"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
           <Box bg="white" p={4} rounded="md" minW="300px">
             <VStack align="stretch" gap={4}>
               <Box fontWeight="bold">Import Runs</Box>
@@ -155,7 +180,10 @@ export default function Home() {
                   Cancel
                 </Button>
                 <Button onClick={() => confirmImport("merge")}>Merge</Button>
-                <Button colorScheme="red" onClick={() => confirmImport("replace")}>
+                <Button
+                  colorScheme="red"
+                  onClick={() => confirmImport("replace")}
+                >
                   Replace
                 </Button>
               </HStack>
@@ -164,7 +192,14 @@ export default function Home() {
         </Box>
       )}
       {resetDialog.open && (
-        <Box position="fixed" inset={0} bg="blackAlpha.600" display="flex" alignItems="center" justifyContent="center">
+        <Box
+          position="fixed"
+          inset={0}
+          bg="blackAlpha.600"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
           <Box bg="white" p={4} rounded="md" minW="300px">
             <VStack align="stretch" gap={4}>
               <Box fontWeight="bold">Reset Data</Box>

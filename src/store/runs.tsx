@@ -54,10 +54,17 @@ export function RunsProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateRun: RunsContextValue["updateRun"] = (run) => {
-    setRuns((r) => r.map((x) => (x.id === run.id ? { ...run, paceSecPerKm: calcPace(run.durationSec, run.distanceKm) } : x)));
+    setRuns((r) =>
+      r.map((x) =>
+        x.id === run.id
+          ? { ...run, paceSecPerKm: calcPace(run.durationSec, run.distanceKm) }
+          : x
+      )
+    );
   };
 
-  const deleteRun = (id: string) => setRuns((r) => r.filter((x) => x.id !== id));
+  const deleteRun = (id: string) =>
+    setRuns((r) => r.filter((x) => x.id !== id));
 
   const duplicateRun = (id: string) => {
     const orig = runs.find((r) => r.id === id);
@@ -69,7 +76,14 @@ export function RunsProvider({ children }: { children: React.ReactNode }) {
 
   const importRuns = (data: RunDBV1, mode: "merge" | "replace") => {
     if (mode === "replace") setRuns(data.runs);
-    else setRuns((r) => [...r, ...data.runs]);
+    else
+      setRuns((r) => {
+        const existingIds = new Set(r.map((run) => run.id));
+        const filteredRuns = data.runs.filter(
+          (run) => !existingIds.has(run.id)
+        );
+        return [...r, ...filteredRuns];
+      });
   };
 
   const reset = () => {
@@ -79,7 +93,15 @@ export function RunsProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <RunsContext.Provider
-      value={{ runs, addRun, updateRun, deleteRun, duplicateRun, importRuns, reset }}
+      value={{
+        runs,
+        addRun,
+        updateRun,
+        deleteRun,
+        duplicateRun,
+        importRuns,
+        reset,
+      }}
     >
       {children}
     </RunsContext.Provider>
