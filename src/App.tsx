@@ -1,12 +1,5 @@
-import { Button, HStack } from "@chakra-ui/react";
+import Home from "@/pages/Home";
 
-function App() {
-  return (
-    <HStack>
-      <Button>Click me</Button>
-      <Button>Click me</Button>
-    </HStack>
-  );
+export default function App() {
+  return <Home />;
 }
-
-export default App;
